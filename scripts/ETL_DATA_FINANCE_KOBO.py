@@ -1,11 +1,17 @@
 import pandas as pd
 
+# =====================================================
+# 1. KOBO API
+# =====================================================
+
 url = "https://kf.kobotoolbox.org/api/v2/assets/aRXemgoLnWQA5GuszorbPa/export-settings/esrugoQhPp5qaxzHntQBSik/data.csv"
 
-df_enquete = pd.read_csv(url,sep=";")
+df_enquete = pd.read_csv(url, sep=";")
 
 
-
+# =====================================================
+# 2. RENOMMAGE
+# =====================================================
 
 rename_columns = {
     "_id": "id_soummission",
@@ -15,9 +21,9 @@ rename_columns = {
     "Acceptez-vous de répondre à quelques questions sur votre utilisation de nos services ?": "consentement_enquete",
     "2. Combien de service utiliser vous le plus souvent ?": "nombre_services_utilises",
     "3. Quel service utilisez-vous le plus ?": "service_principal",
-    "4. À quelle fréquence utilisez-vous le serice <span style=\"color:blue; font-weight: bold; font-size:100%; font-family: Modern No. 20\">${service_1}</span> ?": "frequence_service_principal",
+    "4. À quelle fréquence utilisez-vous le serice ${service_1} ?": "frequence_service_principal",
     "5. Quel est le second service le plus utilisé ?": "service_secondaire",
-    "6. À quelle fréquence utilisez-vous le serice <span style=\"color:blue; font-weight: bold; font-size:100%; font-family: Modern No. 20\">${service_2}</span>  ?": "frequence_service_secondaire",
+    "6. À quelle fréquence utilisez-vous le serice ${service_2} ?": "frequence_service_secondaire",
     "10. Le service est-il facilement accessible ?": "accessibilite_service",
     "11. Le service est-il rapide ?": "rapidite_service",
     "7. Globalement, êtes-vous satisfait du service ?": "satisfaction_globale",
@@ -32,23 +38,26 @@ rename_columns = {
     "_submission_time": "date_soumission"
 }
 
-# Renommage
-df_enquete.rename(columns=rename_columns, inplace=True)
+df_enquete = df_enquete.rename(columns=rename_columns)
 
-# Traitements
+
+# =====================================================
+# 3. CLEAN NUMÉRIQUE
+# =====================================================
+
 df_enquete["id_soummission"] = df_enquete["id_soummission"].astype(str)
+
 df_enquete["numero_telephone"] = df_enquete["numero_telephone"].astype(str)
+
 df_enquete["note_globale"] = pd.to_numeric(df_enquete["note_globale"], errors="coerce")
+
 df_enquete["annee_enquete"] = pd.to_numeric(df_enquete["annee_enquete"], errors="coerce")
 
-# Date
-#df_enquete["date_soumission"] = pd.to_datetime(
-#    df_enquete["date_soumission"],
-#    format="%d/%m/%Y %H:%M",
-#    errors="coerce"
-#)
 
-# Normalisation texte
+# =====================================================
+# 4. CLEAN TEXTE SAFE
+# =====================================================
+
 cols_text = [
     "agent_appel",
     "nom_client",
@@ -61,15 +70,20 @@ cols_text = [
 ]
 
 for col in cols_text:
-    df_enquete[col] = df_enquete[col].astype(str).str.strip().str.lower()
 
-# Valeurs manquantes
-df_enquete["service_secondaire"] = df_enquete["service_secondaire"].fillna("aucun")
-df_enquete["frequence_service_secondaire"] = df_enquete["frequence_service_secondaire"].fillna("non applicable")
-df_enquete["problemes_rencontres"] = df_enquete["problemes_rencontres"].fillna("aucun")
-df_enquete["propositions_amelioration"] = df_enquete["propositions_amelioration"].fillna("aucune")
+    df_enquete[col] = (
+        df_enquete[col]
+        .fillna("inconnu")
+        .astype(str)
+        .str.strip()
+        .str.lower()
+    )
 
-# Variable score satisfaction
+
+# =====================================================
+# 5. MAPPING SATISFACTION
+# =====================================================
+
 mapping_satisfaction = {
     "insatisfait": 1,
     "peu satisfait": 2,
@@ -80,37 +94,12 @@ mapping_satisfaction = {
 
 df_enquete["score_satisfaction"] = df_enquete["satisfaction_globale"].map(mapping_satisfaction)
 
-# Sélection
-df_enquete = df_enquete[[
- "id_soummission",
- "agent_appel",
- "numero_telephone",
- "nom_client",
- "consentement_enquete",
- "nombre_services_utilises",
- "service_principal",
- "frequence_service_principal",
- "service_secondaire",
- "frequence_service_secondaire",
- "accessibilite_service",
- "rapidite_service",
- "satisfaction_globale",
- "qualite_service",
- "confiance_service",
- "satisfaction_support_client",
- "problemes_rencontres",
- "propositions_amelioration",
- "note_globale",
- "mois_enquete",
- "annee_enquete",
- "date_soumission"
-]]
 
+# =====================================================
+# 6. CLEAN CLIENTS
+# =====================================================
 
-clients = pd.read_excel(
-    "data/raw/clients.xlsx"
-)
-
+clients = pd.read_excel("data/raw/clients.xlsx")
 
 
 def clean_phone(x):
@@ -121,32 +110,37 @@ def clean_phone(x):
     x = str(x)
 
     x = x.replace(" ", "")
-    x = x.replace("+221", "")
     x = x.replace("-", "")
+    x = x.replace("+221", "")
+    x = x.replace("221", "")
 
     return x
 
-clients["numero"] = (
-    clients["numero"]
-    .apply(clean_phone)
-)
 
-df_enquete["numero_telephone"] = (
-    df_enquete["numero_telephone"]
-    .apply(clean_phone)
-)
+clients["numero"] = clients["numero"].apply(clean_phone)
+df_enquete["numero_telephone"] = df_enquete["numero_telephone"].apply(clean_phone)
+
+
+# =====================================================
+# 7. MERGE ROBUSTE (IMPORTANT)
+# =====================================================
 
 df = df_enquete.merge(
     clients,
     left_on="numero_telephone",
     right_on="numero",
-    how="inner"
+    how="left"   # IMPORTANT (évite perte de données)
 )
+
+
+# =====================================================
+# 8. EXPORT
+# =====================================================
 
 df.to_excel(
     "data/processed/base_finale.xlsx",
     index=False
 )
 
-print("Jointure terminée")
 
+print("Pipeline terminé avec succès")
