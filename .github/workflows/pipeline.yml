@@ -1,0 +1,32 @@
+name: Dashboard Pipeline
+
+on:
+
+  schedule:
+    - cron: '0 */6 * * *'
+
+  workflow_dispatch:
+
+jobs:
+
+  pipeline:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Cloner repo
+        uses: actions/checkout@v4
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Installer dépendances
+        run: |
+          pip install -r requirements.txt
+
+      - name: Exécuter pipeline
+        run: |
+          python scripts/pipeline.py
