@@ -1,56 +1,56 @@
-name: Dashboard Pipeline
+# name: Dashboard Pipeline
 
-on:
+# on:
 
-  schedule:
-    - cron: '*/5 * * * *'  # toutes les 5 minutes
+#   schedule:
+#     - cron: '*/5 * * * *'  # toutes les 5 minutes
 
-  workflow_dispatch:
-
-
-permissions:
-  contents: write
+#   workflow_dispatch:
 
 
-jobs:
-
-  pipeline:
-
-    runs-on: ubuntu-latest
-
-    timeout-minutes: 30
+# permissions:
+#   contents: write
 
 
-    steps:
+# jobs:
 
-      - name: Cloner repo
-        uses: actions/checkout@v4
+#   pipeline:
 
+#     runs-on: ubuntu-latest
 
-      - name: Installer Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+#     timeout-minutes: 30
 
 
-      - name: Installer dépendances
-        run: |
-          pip install -r requirements.txt
-          pip install openpyxl
+#     steps:
+
+#       - name: Cloner repo
+#         uses: actions/checkout@v4
 
 
-      - name: Exécuter pipeline
-        run: |
-          python scripts/pipeline.py
+#       - name: Installer Python
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: '3.11'
 
 
-      - name: Commit et push des données
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
+#       - name: Installer dépendances
+#         run: |
+#           pip install -r requirements.txt
+#           pip install openpyxl
 
-          git add .
 
-          git commit -m "update data every 5 minutes" || echo "No changes"
+#       - name: Exécuter pipeline
+#         run: |
+#           python scripts/pipeline.py
 
-          git push
+
+#       - name: Commit et push des données
+#         run: |
+#           git config --global user.name "github-actions"
+#           git config --global user.email "github-actions@github.com"
+
+#           git add .
+
+#           git commit -m "update data every 5 minutes" || echo "No changes"
+
+#           git push
