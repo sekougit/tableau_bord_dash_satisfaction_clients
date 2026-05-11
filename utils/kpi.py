@@ -27,7 +27,7 @@ def satisfaction_positive(df):
         return 0
 
     positif = df[
-        df["note_globale"] >= 8
+        df["note_globale"] >= 6
     ].shape[0]
 
     return round(
