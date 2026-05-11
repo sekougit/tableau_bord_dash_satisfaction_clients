@@ -10,6 +10,8 @@ import dash_bootstrap_components as dbc
 
 from components.sidebar import sidebar
 
+import callbacks.refresh_callbacks
+
 
 # =========================================================
 # APP
@@ -46,7 +48,11 @@ import callbacks.clients_callbacks
 app.layout = html.Div(
 
     [
-
+        dcc.Interval(
+    id="auto-refresh",
+    interval=300000,  # 5 minutes
+    n_intervals=0
+),
         dcc.Location(id="url"),
 
         sidebar,
@@ -59,7 +65,11 @@ app.layout = html.Div(
                 "marginLeft":"270px",
                 "padding":"20px"
             }
-        )
+        ),
+        html.Div(
+    id="refresh-output",
+    style={"display":"none"}
+)
 
     ]
 )
