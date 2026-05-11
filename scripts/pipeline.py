@@ -1,12 +1,6 @@
 import os
 
-print("Extraction Kobo")
-os.system("python scripts/extract_kobo.py")
-
-print("Jointure")
-os.system("python scripts/merge_data.py")
-
-print("Transformation")
-os.system("python scripts/transform.py")
+print("Traitement données kobo et clients")
+os.system("python scripts/ETL_DATA_FINANCE_KOBO.py")
 
 print("Pipeline terminé")

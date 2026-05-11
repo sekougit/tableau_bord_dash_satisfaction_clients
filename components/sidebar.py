@@ -1,17 +1,56 @@
-from dash import html, dcc
+from dash import (
+    html,
+    dcc
+)
 
-sidebar = html.Div([
 
-    html.H2("Dashboard"),
+sidebar = html.Div(
 
-    html.Hr(),
+    [
 
-    dcc.Link("Accueil", href="/"),
-    html.Br(),
+        html.H2(
+            "Dashboard"
+        ),
 
-    dcc.Link("Agents", href="/agents"),
-    html.Br(),
+        html.Hr(),
 
-    dcc.Link("Clients", href="/clients"),
+        dcc.Link(
+            "Accueil",
+            href="/"
+        ),
 
-], id="sidebar")
+        html.Br(),
+        html.Br(),
+
+        dcc.Link(
+            "Agents",
+            href="/agents"
+        ),
+
+        html.Br(),
+        html.Br(),
+
+        dcc.Link(
+            "Clients",
+            href="/clients"
+        ),
+
+    ],
+
+    id="sidebar",
+
+    style={
+
+        "width":"250px",
+
+        "height":"100vh",
+
+        "position":"fixed",
+
+        "background":"#1e293b",
+
+        "padding":"20px",
+
+        "color":"white"
+    }
+)
